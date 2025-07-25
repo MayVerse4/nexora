@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Nexora</title>
+  <link href="https://fonts.googleapis.com/css?family=Inter:700,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --neon-1: #00c8ff;
+      --neon-2: #a200ff;
+      --blur-glass: blur(90px) saturate(255%);
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: #000;
+      color: white;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* === NAVIGATION BAR (same as main page) === */
+    .top-bar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      padding-left: 24px;
+      background: rgba(35, 40, 50, 0.22);
+      backdrop-filter: var(--blur-glass);
+      box-shadow: 0 2px 22px rgba(25, 25, 54, 0.14);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 999;
+    }
+    .top-bar .logo {
+      height: 36px;
+      border-radius: 8px;
+    }
+
+    /* === STARFIELD === */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      background: #fff;
+      opacity: 0.8;
+      border-radius: 50%;
+      box-shadow: 0 0 11px #fff9, 0 0 30px #6b3cff66;
+      animation: twinkle 2.6s infinite alternate cubic-bezier(.70,0,1,1);
+    }
+    @keyframes twinkle {
+      0% { opacity: .22; }
+      100% { opacity: .82; }
+    }
+
+    /* === LOGIN CARD === */
+    .container {
+      background: rgba(255, 255, 255, 0.023);
+      backdrop-filter: var(--blur-glass);
+      border-radius: 16px;
+      padding: 25px 30px;
+      width: 90%;
+      height: 28%;
+      max-width: 420px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .title {
+      font-size: 1.2rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: #c7c7d7;
+      margin-bottom: 8px;
+    }
+
+    .brand span {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: white;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .container p {
+      font-size: 1rem;
+      color: #e3e3f0;
+      line-height: 1.5;
+      margin-top: -4px;
+      margin-bottom: 20px;
+    }
+
+    /* === LOGIN BUTTON (neon style) === */
+    .login-btn {
+      background: rgba(255, 255, 255, 0.02);
+      color: #fff;
+      border: none;
+      padding: 14px 24px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 12px;
+      backdrop-filter: blur(12px) saturate(160%);
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.4s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      background: conic-gradient(from 0deg, var(--neon-1), var(--neon-2), var(--neon-1));
+      background-size: 300% 300%;
+      animation: neonmove 3s linear infinite;
+      z-index: -1;
+      pointer-events: none;
+      padding: 1.5px;
+      filter: blur(2px) brightness(1.5);
+      mask: 
+          linear-gradient(#fff 0 0) content-box, 
+          linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: destination-out;
+    }
+
+    @keyframes neonmove {
+      100% { background-position: 300% 0; }
+    }
+
+    .login-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .login-title {
+      font-size: 35px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        padding: 32px 20px;
+      }
+      .brand span {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ⭐ NAVBAR -->
+  <div class="top-bar">
+    <a href="/"><img src="{{ url_for('static', filename='nexora-logo.png') }}" alt="Nexora Logo" class="logo"
+         onerror="this.onerror=null;this.src='/static/dynamic/nexora-logo.png';"></a>
+  </div>
+
+  <!-- 🌠 Star Background -->
+  <div class="stars"></div>
+
+  <!-- 🔐 Login Card -->
+  <div class="container">
+    <h1 class="login-title">Welcome back</h1>
+    <p style="font-size: 16px;">Sign in to continue to <strong>Nexora</strong></p>
+    <p style="font-size: 14px;">Use your Google account to securely connect and manage your inbox.</p>
+    <button class="login-btn" onclick="startLogin()">Continue with Google</button>
+  </div>
+
+  <script>
+    function createStars() {
+      const starContainer = document.querySelector('.stars');
+      const numStars = 60;
+      starContainer.innerHTML = '';
+      for (let i = 0; i < numStars; i++) {
+        const s = document.createElement('div');
+        s.classList.add('star');
+        let x = Math.random() * window.innerWidth;
+        let y = Math.random() * window.innerHeight;
+        let size = Math.random() * 2.1 + 0.8;
+        s.style.width = `${size}px`;
+        s.style.height = `${size}px`;
+        s.style.left = `${x}px`;
+        s.style.top = `${y}px`;
+        starContainer.appendChild(s);
+      }
+    }
+    createStars();
+    window.addEventListener('resize', createStars);
+
+    function startLogin() {
+      window.location.href = "/fetch-emails";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexora - Unsubscribe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Inter", sans-serif;
+            background: linear-gradient(to bottom, #000000, #0a0f29, #1a2a48);
+            color: white;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #000;
+            padding: 10px 20px;
+            border-bottom: 1px solid #333;
+        }
+
+
+        header img {
+            height: 30px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            background-color: #880000;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        header a:hover {
+            background-color: #aa0000;
+        }
+
+
+        .left-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .left-section img {
+            height: 35px;
+            margin-right: 10px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .main-content {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .email-section, .result-output {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1;
+        }
+
+        .email-section h2 {
+            text-align: center;
+        }
+
+        .email-list {
+            margin-top: 20px;
+        }
+
+        .email-item {
+            background-color: white;
+            color: black;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .email-item input[type="checkbox"] {
+            margin-right: 15px;
+        }
+
+        .unsubscribe-btn {
+            margin-top: 20px;
+            width: 100%;
+            background-color: #e63946;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .unsubscribe-btn:hover {
+            background-color: #c91c2d;
+        }
+
+        .result-output h3 {
+            margin-bottom: 10px;
+        }
+
+        .result-output ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .result-output li {
+            margin-bottom: 8px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="{{ url_for('static', filename='google-icon.png') }}" alt="Nexora Logo" />
+        <a href="{{ url_for('main_page') }}">Dashboard</a>
+    </header>
+
+    <!-- 📦 Main Content -->
+    <div class="main-content">
+        <!-- ✅ Email Selection Section -->
+        <div class="email-section">
+            <h2>Select Emails to Unsubscribe</h2>
+            <form method="POST" action="/run-unsubscribe">
+                <div class="email-list">
+                    {% for sender in senders %}
+                        <div class="email-item">
+                            <input type="checkbox" name="unsubscribe" value="{{ loop.index0 }}">
+                            <label>{{ loop.index }}. {{ sender }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="unsubscribe-btn">🚫 Unsubscribe Selected</button>
+            </form>
+        </div>
+
+        <!-- ✅ Results Section -->
+        {% if results %}
+        <div class="result-output">
+            <h3>Unsubscribe Results:</h3>
+            <ul>
+                {% for line in results %}
+                    <li>{{ line }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

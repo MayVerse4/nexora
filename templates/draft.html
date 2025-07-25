@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nexora - Manage Drafts</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+      body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: radial-gradient(
+        ellipse 150% 40% at bottom,
+        rgba(247, 27, 27, 0.84),
+        #000 45%
+      );
+      color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #000;
+      padding: 10px 20px;
+      border-bottom: 1px solid #333;
+    }
+
+    header img {
+      height: 30px;
+    }
+
+    header a {
+      color: white;
+      text-decoration: none;
+      background-color: #880000;
+      padding: 8px 16px;
+      border-radius: 5px;
+      transition: 0.3s;
+      font-weight: 500;
+    }
+
+    header a:hover {
+      background-color: #aa0000;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(12px);
+      background-color: rgba(20, 20, 20, 0.4);
+      border-radius: 20px;
+      margin: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 20px; /* ✅ Added spacing inside the container */
+      overflow: hidden;
+    }
+
+
+    h1 {
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 14px; /* ✅ Increased spacing between icon and text */
+      font-size: 20px;
+      color: #f3f3f3;
+      margin-left: 4px; /* ✅ Extra spacing from the left edge */
+    }
+
+    h1 img {
+      height: 20px;
+      width: 20px;
+      object-fit: contain;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(6px);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #eaeaea;
+    }
+
+    th {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    th.select-col,
+    td.select-col {
+      width: 60px; /* ✅ Reduce width of "Select" column */
+      text-align: center;
+    }
+
+    .draft-content-scrollable {
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 8px;
+      padding-left: 4px; /* ✅ Added padding to avoid flush edge */
+      max-height: 60vh;
+    }
+
+    .category-header {
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 14px 16px;
+      font-weight: bold;
+      font-size: 18px;
+      border-radius: 8px;
+      margin-top: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .category-header button {
+      padding: 8px 14px;
+      font-size: 14px;
+      background-color: #880000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .category-header button:hover {
+      background-color: #aa0000;
+    }
+
+    button {
+      background-color: #660000;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(170, 0, 0, 0.4);
+    }
+
+    button:hover {
+      background-color: #aa0000;
+      box-shadow: 0 0 12px #e51818;
+      transform: translateY(-1px);
+    }
+
+    /* Footer buttons area fixed */
+    .actions {
+      padding: 20px 0 0;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-start;
+      background: transparent;
+    }
+
+
+    .refresh-wrapper {
+      width: 40px;      /* your still PNG width */
+      height: 40px;     /* your still PNG height */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #refreshBtn {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;  /* maintain image proportions */
+      display: block;
+    }
+
+    #refreshBtn {
+      border: none;
+      padding: 0;
+      margin: 0;
+    }
+
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      border: 2px solid #880000;
+      border-radius: 4px;
+      accent-color: #aa0000;
+    }
+
+    .message {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      background-color: rgba(0, 255, 0, 0.1);
+      border-left: 4px solid limegreen;
+      color: lime;
+      border-radius: 8px;
+    }
+
+    #confirmModal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    #confirmBox {
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+      width: 300px;
+      border-radius: 12px;
+      color: #fff;
+      margin: 15% auto;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="{{ url_for('static', filename='google-icon.png') }}" alt="Nexora Logo" />
+  <a href="{{ url_for('main_page') }}">Dashboard</a>
+</header>
+
+<div class="container">
+  <h1><img src="{{ url_for('static', filename='icons/draft.png') }}" alt="icon"> Manage Gmail Drafts</h1>
+
+  <div id="successMessage" class="message"></div>
+
+  <form id="draftForm" style="display: flex; flex-direction: column; flex: 1;">
+    <div class="draft-content-scrollable">
+      {% set has_drafts = false %}
+      {% for category, drafts in categorized.items() %}
+        {% if drafts %}
+          {% set has_drafts = true %}
+          <div class="category-header">
+            {{ category }}
+            <button type="button" class="delete-category-btn" data-category="{{ category }}">Delete Category</button>
+          </div>
+          <table>
+            <tr>
+              <th class="select-col">Select</th>
+              <th>Subject</th>
+            </tr>
+            {% for subject, draft_id in drafts %}
+              <tr>
+                <td class="select-col"><input type="checkbox" name="selected_drafts" value="{{ draft_id }}"></td>
+                <td>{{ subject }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% endif %}
+      {% endfor %}
+
+      {% if not has_drafts %}
+        <div style="text-align:center; color:#ccc; margin-top: 30px;">
+          No drafts found.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Action buttons pinned below -->
+    <div class="actions">
+      <button type="button" id="deleteSelectedBtn">Delete Selected</button>
+      <button type="button" id="deleteAllBtn">Delete All</button>
+      
+      <!-- ✅ Refresh button -->
+        <img src="{{ url_for('static', filename='icons/refresh-still.png') }}"
+            id="refreshBtn"
+            alt="Refresh"
+            style="width: 32px; height: 32px; margin-top: 24px; margin-left: 10px; cursor: pointer; vertical-align: middle;">
+    </div>
+  </form>
+</div>
+
+
+<!-- Confirmation Modal -->
+<div id="confirmModal">
+  <div id="confirmBox">
+    <p id="confirmText">Are you sure?</p>
+    <button id="confirmYes">Yes</button>
+    <button onclick="hideModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+  let actionType = '';
+  let actionPayload = null;
+
+  const modal = document.getElementById('confirmModal');
+  const confirmText = document.getElementById('confirmText');
+  const successMessage = document.getElementById('successMessage');
+
+  function showModal(text, type, payload) {
+    actionType = type;
+    actionPayload = payload;
+    confirmText.textContent = text;
+    modal.style.display = 'block';
+  }
+
+  function hideModal() {
+    modal.style.display = 'none';
+    actionType = '';
+    actionPayload = null;
+  }
+
+  document.getElementById('confirmYes').onclick = async () => {
+    const btn = document.getElementById('confirmYes');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+
+    let url = '';
+    let payload = {};
+    let isJson = false;
+
+    if (actionType === 'delete_category') {
+      url = '/delete_by_category';
+      payload = { category: actionPayload };
+      isJson = true;
+    } else if (actionType === 'delete_selected') {
+      url = '/delete_selected';
+      const selected = Array.from(document.querySelectorAll('input[name="selected_drafts"]:checked')).map(cb => cb.value);
+      payload = { draft_ids: selected };
+      isJson = true;
+    } else if (actionType === 'delete_all') {
+      url = '/delete_all';
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        ...(isJson ? {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        } : {})
+      });
+
+      const result = await response.json();
+      showSuccess(result.message || 'Deleted successfully.');
+      hideModal();
+      setTimeout(() => location.reload(), 1000);
+    } catch (error) {
+      showSuccess('An error occurred.');
+      hideModal();
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Yes';
+    }
+  };
+
+  function showSuccess(msg) {
+    successMessage.textContent = msg;
+    successMessage.style.display = 'block';
+  }
+
+  document.querySelectorAll('.delete-category-btn').forEach(btn => {
+    btn.onclick = () => {
+      const cat = btn.getAttribute('data-category');
+      showModal(`Delete all drafts in "${cat}" category?`, 'delete_category', cat);
+    };
+  });
+
+  document.getElementById('deleteSelectedBtn').onclick = () => {
+    const anyChecked = document.querySelectorAll('input[name="selected_drafts"]:checked').length > 0;
+    if (!anyChecked) return alert('Select at least one draft to delete.');
+    showModal('Delete selected drafts?', 'delete_selected');
+  };
+
+  document.getElementById('deleteAllBtn').onclick = () => {
+    showModal('Delete all drafts?', 'delete_all');
+  };
+
+   const refreshBtn = document.getElementById('refreshBtn');
+
+    refreshBtn.addEventListener('click', function () {
+      // Swap image to GIF spinner
+      refreshBtn.src = "{{ url_for('static', filename='icons/refresh-spin.gif') }}";
+
+       // 🔽 Resize the GIF (adjust the numbers as needed)
+      refreshBtn.style.width = "40px";
+      refreshBtn.style.height = "40px";
+      refreshBtn.style.marginTop = "20px";
+
+      // Reload the page after a short delay (GIF will play while reloading)
+      setTimeout(() => {
+        location.reload();
+      }, 200); // 100ms delay is enough
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nexora – AI Email Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Font for sharp, bold web type -->
+  <link href="https://fonts.googleapis.com/css?family=Inter:700,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --main-pad: 7vw;
+      --max-w: 1140px;
+      --neon-1: #00c8ff;
+      --neon-2: #a200ff;
+      --blur-glass: blur(22px) saturate(145%);
+    }
+    html, body {
+      margin: 0; padding: 0;
+      background: #000; color: #fff;
+      font-family: 'Inter', Arial, sans-serif;
+      min-height: 100vh; width: 100vw;
+      overflow-x: hidden;
+      scrollbar-width: none;
+    }
+    body::-webkit-scrollbar { display: none; }
+
+    /* === NAVIGATION - True glass, minimal pad, logo left === */
+    .top-bar {
+      position: fixed; z-index: 100;
+      top: 0; left: 0; width: 100vw; height: 58px;
+      display: flex; align-items: center;
+      padding-left: 24px; padding-right: 0;
+      background: rgba(35,40,50,0.22);
+      backdrop-filter: var(--blur-glass);
+      box-shadow: 0 2px 22px 0 rgba(25,25,54,0.14);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      gap: 16px;
+    }
+    .logo {
+      height: 36px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: transparent;
+      margin-left: 0;
+    }
+
+    /* === STARFIELD === */
+    .stars {
+      position: fixed; inset: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .star {
+      position: absolute;
+      background: #fff;
+      opacity: 0.8;
+      border-radius: 50%;
+      box-shadow: 0 0 11px #fff9, 0 0 30px #6b3cff66;
+      animation: twinkle 2.6s infinite alternate cubic-bezier(.70,0,1,1);
+    }
+    @keyframes twinkle {
+      0%   { opacity: .22; }
+      100% { opacity: .82; }
+    }
+
+    /* === PAGE LAYOUT === */
+    .main {
+      margin-top: 58px;
+      z-index: 2; position: relative;
+    }
+    .section {
+      width: 100vw;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 65vh;
+      padding: 62px 0 56px 0;
+      position: relative;
+    }
+    .section-inner {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 var(--main-pad);
+      box-sizing: border-box;
+      gap: 5vw;
+    }
+    .alt .section-inner { flex-direction: row-reverse; }
+    .section-content {
+      flex: 1.2;
+      min-width: 260px; max-width: 475px;
+      display: flex; flex-direction: column;
+      align-items: flex-start; justify-content: center;
+    }
+    .section-content h1, .section-content h2 {
+      font-size: 2.12rem; font-weight: 900;
+      margin: 0 0 16px 0;
+      letter-spacing: -0.2px; line-height: 1.13;
+      text-shadow: 0 6px 26px #1919273c;
+      word-break: break-word;
+    }
+    .section-content p {
+      margin: 0 0 1.08em 0;
+      font-size: 1.13rem; color: #ececf2;
+      line-height: 1.56;
+    }
+    .section-visual {
+      flex: 1.1;
+      min-width: 180px;
+      display: flex;
+      align-items: center; justify-content: center;
+    }
+    .dynamic-img {
+      width: var(--img-width, 330px);
+      max-width: var(--img-max-width, 32vw);
+      min-height: auto;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      margin: 0;
+      transition: transform 0.35s cubic-bezier(.24,.92,.48,1), opacity .19s;
+      will-change: transform, opacity;
+      user-select: none; pointer-events: none;
+      top: var(--img-top, 0px);
+      left: var(--img-left, 0px);
+    }
+    @media (max-width: 950px){
+      .main {margin-top:50px;}
+      .section-inner { flex-direction: column; gap: 1.7em; padding: 0 3vw; }
+      .section-content, .section-visual { align-items:center; text-align:center;}
+      .dynamic-img { width: 94vw; max-width: 97vw;}
+    }
+
+    /* ===== ONE ONLY Neon Border Button, NOT spinning the fill or content ===== */
+    .neon-cta {
+        position: fixed;
+        left: 60%;
+        top: 60px;
+        transform: translate(-50%);
+        bottom: 100px; /* or adjust to push it up */
+        padding: 16px 52px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.02); /* Glass feel */
+        border: none;
+        border-radius: 13px;
+        backdrop-filter: blur(12px) saturate(160%);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        outline: none;
+        box-shadow: none;
+        z-index: 9999;
+        min-width: 150px;
+        transition: all 0.4s ease;
+    }
+
+    .neon-cta span {
+        font-weight: bold;
+        letter-spacing: 0.07em;
+        z-index: 2;
+        position: relative;
+    }
+
+    /* Neon edge glow only */
+    .neon-cta::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 10px;
+        background: conic-gradient(from 0deg, var(--neon-1), var(--neon-2), var(--neon-1));
+        background-size: 300% 300%;
+        animation: neonmove 3s linear infinite;
+        z-index: -1;
+        pointer-events: none;
+        border: 0.3px solid transparent;
+        mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        -webkit-mask-composite: destination-out;
+        padding: 1.5px; /* creates thin edge border effect */
+        filter: blur(2px) brightness(1.5);
+    }
+
+    @keyframes neonmove {
+        100% { background-position: 300% 0; }
+    }
+
+    .neon-cta:hover {
+        background: rgba(255, 255, 255, 0.05); /* very subtle background lift */
+        color: #fff; /* keep text white */
+    }
+
+
+    /* Mobile: Button always visible and proper */
+    @media (max-width:700px){
+      .neon-cta { min-width:96px; padding:14px 8vw;}
+    }
+
+    
+    /* Hide scroll bar */
+    ::-webkit-scrollbar { display: none; }
+    body, .main { scrollbar-width: none;}
+  </style>
+</head>
+<body>
+  <!-- GLASSMORPH NAV: LOGO left, no fill -->
+  <div class="top-bar">
+    <a href="/"><img src="/static/dynamic/nexora-logo.png" alt="Nexora Logo" class="logo"></a>
+  </div>
+  <div class="stars"></div>
+  <div class="main">
+    <section class="section hero">
+      <div class="section-inner">
+        <div class="section-content">
+          <h1>Welcome to Nexora</h1>
+          <p>An AI-powered email assistant to transform how you manage emails.<br>Ready for control?</p>
+        </div>
+        <div class="section-visual">
+          <img src="/static/dynamic/hero-inbox.png" alt="AI Inbox Overview" class="dynamic-img hero-img" style="--img-width: 500px; --img-top: -10px; --img-left: 25px;">
+        </div>
+      </div>
+    </section>
+    <!-- === FEATURES -->
+    <section class="section alt">
+      <div class="section-inner">
+        <div class="section-content">
+          <h2>Categorize & Move</h2>
+          <p>Sort and move your emails to perfect labels with a tap—Nexora AI keeps you organized, automatically.</p>
+        </div>
+        <div class="section-visual">
+          <img src="/static/dynamic/categorize-move.png" alt="Categorize and Move Emails" class="dynamic-img categorize-img" style="--img-width: 500px; --img-top: -10px; --img-left: 25px;">
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-inner">
+        <div class="section-content">
+          <h2>Bulk Delete</h2>
+          <p>Delete hundreds of emails instantly—by time, address, or number. Inbox zero, powered by Nexora.</p>
+        </div>
+        <div class="section-visual">
+          <img src="/static/dynamic/bulk-delete.png" alt="Bulk Delete Emails" class="dynamic-img delete-img" style="--img-width: 430px; --img-top: -10px; --img-left: 25px;">
+        </div>
+      </div>
+    </section>
+    <section class="section alt">
+      <div class="section-inner">
+        <div class="section-content">
+          <h2>Timed Delete Drafts</h2>
+          <p>Drafts delete by age so you never leave unfinished messages behind. Clean and automatic.</p>
+        </div>
+        <div class="section-visual">
+          <img src="/static/dynamic/timed-draft.png" alt="Auto Delete Drafts" class="dynamic-img timed-draft-img" style="--img-width: 500px; --img-top: -10px; --img-left: 25px;">
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-inner">
+        <div class="section-content">
+          <h2>Bulk Unsubscribe</h2>
+          <p>Unsubscribe from junk in a flash. Reclaim your inbox from noisy senders with a tap.</p>
+        </div>
+        <div class="section-visual">
+          <img src="/static/dynamic/bulk-unsubscribe.png" alt="Bulk Unsubscribe" class="dynamic-img unsubscribe-img" style="--img-width: 500px; --img-top: -10px; --img-left: 25px;">
+        </div>
+      </div>
+    </section>
+    <section class="section alt">
+      <div class="section-inner">
+        <div class="section-content">
+          <h2>Self-Destruct Messages</h2>
+          <p>Send emails that self-delete after reading—perfect for OTPs or confidential info. Ultimate privacy, no hassle.</p>
+        </div>
+        <div class="section-visual">
+          <img src="/static/dynamic/self-destruct.png" alt="Self-Destruct Emails" class="dynamic-img destruct-img" style="--img-width: 430px; --img-top: -10px; --img-left: 25px;">
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Only ONE Get Started button, floating & animates to below current section desc -->
+  <button class="neon-cta" id="neon-cta"><span>Get Started</span></button>
+
+  <script>
+    // Logo left/top, never moves
+    // Starfield
+    function createStars() {
+      const starContainer = document.querySelector('.stars');
+      const numStars = 60;
+      starContainer.innerHTML = '';
+      for (let i = 0; i < numStars; i++) {
+        const s = document.createElement('div');
+        s.classList.add('star');
+        let x = Math.random() * window.innerWidth;
+        let y = Math.random() * window.innerHeight;
+        let size = Math.random() * 2.1 + 0.8;
+        s.style.width = `${size}px`;
+        s.style.height = `${size}px`;
+        s.style.left = `${x}px`;
+        s.style.top = `${y}px`;
+        starContainer.appendChild(s);
+      }
+    }
+    createStars();
+    window.addEventListener('resize', createStars);
+
+    // Parallax for images
+    window.addEventListener('scroll', function () {
+      document.querySelectorAll('.dynamic-img').forEach(function (img) {
+        const rect = img.getBoundingClientRect();
+        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+        let visible = rect.top < windowHeight && rect.bottom > 0;
+        if (!visible) return;
+        let section = img.closest(".section");
+        const sectionRect = section.getBoundingClientRect();
+        let progress = (windowHeight - sectionRect.top) / (windowHeight + sectionRect.height * 0.3);
+        progress = Math.max(0, Math.min(1, progress));
+        let scale = 1 - progress * 0.18;
+        let y = -progress * 54;
+        img.style.transform = `translateY(${y}px) scale(${scale})`;
+        img.style.opacity = `${1 - progress * 0.10}`;
+      });
+    });
+    window.dispatchEvent(new Event('scroll'));
+
+    // Neon button — smoothly slides horizontally to follow visible section
+    const ctaBtn = document.getElementById('neon-cta');
+    let lastLeft = null, lastTop = null;
+    let animationFrame;
+
+    function moveCTA() {
+      // Track the topmost visible section-content
+      const sections = Array.from(document.querySelectorAll('.section-content'));
+      let bestSection = null, bestScore = Number.MAX_VALUE;
+      for (let section of sections) {
+        const rect = section.getBoundingClientRect();
+        // prefer section closest to middle of viewport
+        let score = Math.abs(rect.top + rect.height/2 - window.innerHeight/2);
+        if (rect.top < window.innerHeight-90 && rect.bottom > 95 && score < bestScore) {
+          bestSection = section;
+          bestScore = score;
+        }
+      }
+      // Fallback just stick at bottom
+      if (!bestSection) {
+        ctaBtn.style.position = "fixed";
+        ctaBtn.style.left = "100%";
+        ctaBtn.style.top = "auto";
+        ctaBtn.style.bottom = (window.innerWidth > 700) ? "32px" : "10px";
+        ctaBtn.style.transform = "translateX(-50%)";
+        ctaBtn.style.opacity = "1";
+        return;
+      }
+      // Get the actual description
+      const parent = bestSection.parentElement;
+      // Place directly under the last p in .section-content
+      const ps = Array.from(bestSection.querySelectorAll("p"));
+      let anchor = ps.length ? ps[ps.length-1] : bestSection;
+      let rect = anchor.getBoundingClientRect();
+      let x = rect.left + rect.width / 2;
+      let y = window.scrollY + rect.bottom + 24; // smoother spacing
+
+      // Animate with window.requestAnimationFrame
+      ctaBtn.style.position = "absolute";
+      ctaBtn.style.left = `${x}px`;
+      ctaBtn.style.top = `${y}px`;
+      ctaBtn.style.right = "auto";
+      ctaBtn.style.bottom = "auto";
+      ctaBtn.style.transform = "translateX(-50%)";
+      ctaBtn.style.opacity = "1";
+    }
+
+    window.addEventListener('scroll', ()=>requestAnimationFrame(moveCTA));
+    window.addEventListener('resize', ()=>requestAnimationFrame(moveCTA));
+    moveCTA();
+
+    // Get Started action
+    ctaBtn.onclick = function() { window.location.href = "/login"; }
+  </script>
+</body>
+</html>

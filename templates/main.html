@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nexora - Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: black;
+      color: white;
+      overflow: hidden;
+    }
+    .top-bar {
+      position: fixed;
+      z-index: 100;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      padding-left: 24px;
+      background: rgba(35,40,50,0.22);
+      backdrop-filter: blur(22px) saturate(145%);
+      box-shadow: 0 2px 22px 0 rgba(25,25,54,0.14);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      gap: 16px;
+    }
+    .logo {
+      height: 36px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .container {
+      position: absolute;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      z-index: 2;
+    }
+    .container h1 {
+      font-size: 22px;
+      margin-bottom: 5px;
+    }
+    .container p {
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    .btn-wrapper {
+      position: fixed;
+      left: 0;
+      width: 100%;
+      pointer-events: none;
+      z-index: 3;
+      top: 0;
+      height: 0;
+    }
+    .feature-btn {
+      width: 180px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      pointer-events: auto;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+    }
+    .feature-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%) scale(1.03);
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <a href="/"><img src="/static/dynamic/nexora-logo.png" alt="Nexora Logo" class="logo" /></a>
+  </div>
+  <div class="container">
+    <h2>Welcome to Nexora</h2>
+    <p>Select an action:</p>
+  </div>
+  <canvas id="waveCanvas"></canvas>
+  <div class="btn-wrapper" id="btnWrapper">
+    <button id="btn-0" class="feature-btn" onclick="navigateTo('/categorize')">📂 Categorize Emails</button>
+    <button id="btn-1" class="feature-btn" onclick="navigateTo('/delete')">🗑️ Delete Emails</button>
+    <button id="btn-2" class="feature-btn" onclick="navigateTo('/draft')">📝 Delete Drafts</button>
+    <button id="btn-3" class="feature-btn" onclick="navigateTo('/unsubscribe')">🚫 Unsubscribe</button>
+    <button id="btn-4" class="feature-btn" onclick="navigateTo('/self')">💥 Self-Destruction</button>
+  </div>
+  <script>
+    function navigateTo(endpoint) {
+      window.location.href = endpoint;
+    }
+
+    const canvas = document.getElementById("waveCanvas");
+    const ctx = canvas.getContext("2d");
+    const btnWrapper = document.getElementById('btnWrapper');
+    const buttons = [
+      document.getElementById('btn-0'),
+      document.getElementById('btn-1'),
+      document.getElementById('btn-2'),
+      document.getElementById('btn-3'),
+      document.getElementById('btn-4')
+    ];
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+
+    // Make the data stream visually thick & dense by bumping up count and y-offset
+    const mainStreamCount = 450; // denser and thicker
+    const mainStreamThick = 7;   // thickness vertical range
+
+    // Branch layout: each object specifies how curved/long and angle the branch is
+    const branchConfigs = [
+      { relX: -0.32, relY: -0.23,  bow: 0.47 },  // Categorize (up left)
+      { relX: -0.23, relY: 0.25,  bow: 0.62 },   // Delete (down left)
+      { relX:  0.11, relY: -0.24,  bow: 0.50 },  // Draft (up right)
+      { relX:  0.26, relY: 0.16,   bow: 0.59 },  // Unsubscribe (down right)
+      { relX:  0.39, relY: -0.14,  bow: 0.60 }   // Self-Destruction (far up right)
+    ];
+
+    function getStreamCenter() {
+      return { x: width / 2, y: height * 0.54 };
+    }
+
+    function getBranchesAndButtons() {
+      const c = getStreamCenter();
+      const btnPositions = [];
+      const branches = [];
+      for (let i = 0; i < branchConfigs.length; ++i) {
+        const conf = branchConfigs[i];
+        // End point
+        const endX = c.x + conf.relX * width;
+        const endY = c.y + conf.relY * height;
+        btnPositions.push({x: endX, y: endY});
+        // Bow the curve outward between center and end for Marvel style
+        const controlX = c.x + (endX - c.x) * conf.bow;
+        const controlY = c.y + (endY - c.y) * conf.bow + (i % 2 ? 48 : -48); // Up-curves curve up, down-curves curve down more
+        branches.push({
+          start: {x: c.x, y: c.y},
+          control: {x: controlX, y: controlY},
+          end: {x: endX, y: endY}
+        });
+      }
+      return {branches, btnPositions};
+    }
+
+    function updateButtons() {
+      const {btnPositions} = getBranchesAndButtons();
+      for(let i=0; i<buttons.length; ++i) {
+        buttons[i].style.left = btnPositions[i].x + "px";
+        buttons[i].style.top  = btnPositions[i].y + "px";
+      }
+    }
+
+    // Particle system
+    let particles = [];
+    const branchParticles = 30;
+    const branchLineWidth = 2.7;
+    const branchFadeStep = 0.0175;
+
+    function generateParticles() {
+      particles = [];
+      // Main stream - thick and dense, with vertical spread
+      let {x: cx, y: cy} = getStreamCenter();
+      for (let i = 0; i < mainStreamCount; i++) {
+        let x = Math.random() * width;
+        // Add a random y spread to make the data stream thick
+        let y = cy + Math.sin(x / 35) * 30 + (Math.random() - 0.5) * mainStreamThick;
+        let size = Math.random() < 0.985 ? 1.7 : 4.2;
+        let vx = 0.72 + Math.random() * 0.26;
+        let hue = 500 + (x / width) * 120;
+        let color = `hsl(${hue}, 100%, 60%)`;
+        particles.push({x, y, size, vx, offset: Math.random()*500, color});
+      }
+      // Curve particles for branches
+      const {branches} = getBranchesAndButtons();
+      for(let b=0; b<10; ++b) {
+        for(let j=0; j<branchParticles; j++) {
+          let t = Math.random()*0.7;
+          let size = 1.5 + Math.random()*1.8;
+          let hue = 500 + b * 15 + Math.random() * 22;
+          let color = `hsl(${hue},100%,60%)`;
+          particles.push({
+            curve: branches[b],
+            t,
+            speed: 0.0018 + Math.random()*0.0021,
+            alpha: 1,
+            fading: false,
+            size,
+            color
+          });
+        }
+      }
+    }
+
+    let time = 0;
+    function bezierPoint(t, p0, p1, p2) {
+      return {
+        x: Math.pow(1-t,2)*p0.x + 2*(1-t)*t*p1.x + Math.pow(t,2)*p2.x,
+        y: Math.pow(1-t,2)*p0.y + 2*(1-t)*t*p1.y + Math.pow(t,2)*p2.y
+      };
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      time += 1;
+
+      // Main horizontal data stream (thick)
+      const c = getStreamCenter();
+      for(let i=0; i<mainStreamCount; ++i){
+        let p = particles[i];
+        p.x += p.vx;
+        p.y = c.y + Math.sin((p.x + p.offset + time) / 44)*30 + (Math.random()-0.5)*mainStreamThick*0.9;
+        if (p.x > width + 20) p.x = -20;
+        ctx.beginPath();
+        ctx.globalAlpha = 0.9 + 0.07*Math.random();
+        ctx.fillStyle = p.color;
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Branches: curve lines
+      const {branches} = getBranchesAndButtons();
+      for(let b=0; b<5; ++b){
+        let branch = branches[b];
+        // Curve line (dashed)
+        ctx.save();
+        ctx.lineWidth = branchLineWidth;
+        ctx.setLineDash([0, 30]);
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = `hsl(${210 + b * 15}, 98%, 62%)`;
+        ctx.beginPath();
+        ctx.moveTo(branch.start.x, branch.start.y);
+        ctx.quadraticCurveTo(branch.control.x, branch.control.y, branch.end.x, branch.end.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+      // Animate particles on curves
+      let pi = mainStreamCount;
+      for(let b=0;b<5;++b){
+        let branch = branches[b];
+        for(let j=0;j<branchParticles;j++,pi++){
+          let p = particles[pi];
+          if (!p.fading) {
+            p.t += p.speed;
+            if (p.t >= 1) { p.t = 1; p.fading = true; }
+          } else {
+            p.alpha -= branchFadeStep;
+            if (p.alpha <= 0.05) {
+              p.t = 0;
+              p.alpha = 1;
+              p.fading = false;
+            }
+          }
+          let pt = bezierPoint(p.t, branch.start, branch.control, branch.end);
+          ctx.beginPath();
+          ctx.globalAlpha = Math.max(p.alpha, 0.12);
+          ctx.fillStyle = p.color;
+          ctx.arc(pt.x, pt.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(animate);
+    }
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      updateButtons();
+      generateParticles();
+    }
+
+    window.addEventListener("resize", resize);
+    window.onload = () => {
+      resize();
+      animate();
+    };
+  </script>
+</body>
+</html>

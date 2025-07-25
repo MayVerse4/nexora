@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nexora - Self Destruct Emails</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: radial-gradient(
+    ellipse 150% 40% at  bottom,
+    rgba(247, 27, 27, 0.84),
+    #000 45%
+  );
+  color: #f5f5f5;
+}
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #000;
+      padding: 10px 20px;
+      border-bottom: 1px solid #333;
+    }
+
+    header img {
+      height: 30px;
+    }
+
+    header a {
+      color: white;
+      text-decoration: none;
+      background-color: #880000;
+      padding: 8px 16px;
+      border-radius: 5px;
+      transition: 0.3s;
+      font-weight: 500;
+    }
+
+    header a:hover {
+      background-color: #aa0000;
+    }
+
+    .container {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+
+    .left,
+    .right {
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      background-color: rgba(20, 20, 20, 0.4);
+      border-radius: 20px;
+      margin: 10px;
+      overflow: hidden;
+    }
+
+    .left {
+      width: 40%;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .right {
+      width: 60%;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #555;
+      border-radius: 10px;
+    }
+
+    .form-section {
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+    }
+
+    .output-section {
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      border-radius: 16px;
+      height: 100%;
+      overflow-y: auto;
+      white-space: pre-line;
+      font-family: monospace;
+      border: 1px solid #222;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .email-box {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 14px;
+    }
+
+    .email-box input[type="checkbox"] {
+      margin-right: 10px;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      border: 2px solid #880000;
+      border-radius: 4px;
+      vertical-align: middle;
+    }
+
+    .email-box input[type="checkbox"]:checked {
+      accent-color: #aa0000;
+      box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.3);
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: none;
+      background-color: #1e1e1e;
+      color: white;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      box-shadow: 0 0 5px #aa0000;
+      border: 1px solid #aa0000;
+    }
+
+    button {
+      background-color: #660000;
+      color: white;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(170, 0, 0, 0.4);
+    }
+
+    button:hover {
+      background-color: #aa0000;
+      box-shadow: 0 0 12px #e51818;
+      transform: translateY(-1px);
+    }
+
+    h3 {
+      margin-top: 0;
+      font-weight: 500;
+      font-size: 18px;
+      color: #e6e6e6;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 img {
+      height: 20px;
+      width: 20px;
+      object-fit: contain;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="{{ url_for('static', filename='google-icon.png') }}" alt="Nexora Logo" />
+    <a href="{{ url_for('main_page') }}">Dashboard</a>
+  </header>
+
+  <div class="container">
+    <div class="left">
+      <h3><img src="{{ url_for('static', filename='icons/email.png') }}" alt="icon" /> Latest Emails</h3>
+      <form id="selfForm">
+        {% for email in emails %}
+        <div class="email-box">
+          <input type="checkbox" name="selected_emails" value="{{ email.id }}" />
+          <strong>{{ email.subject }}</strong><br />
+          <small>From: {{ email.sender }}</small>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="right">
+      <div class="form-section">
+        <h3><img src="{{ url_for('static', filename='icons/settings.png') }}" alt="icon" /> Self-Destruct Settings</h3>
+        <label>Keywords to Match (comma-separated):</label>
+        <input
+          type="text"
+          name="keywords"
+          placeholder="OTP, Verification"
+          required
+        />
+
+        <label>Delete Timer:</label>
+        <select name="time_choice">
+          <option value="open">After Opening</option>
+          <option value="600">After 10 minutes</option>
+          <option value="3600">After 1 hour</option>
+          <option value="86400">After 1 day</option>
+        </select>
+
+        <label>Delete Mode:</label>
+        <select name="delete_mode">
+          <option value="trash">Move to Trash</option>
+          <option value="delete">Permanently Delete</option>
+        </select>
+
+        <button type="submit">
+          <img src="{{ url_for('static', filename='icons/rocket.png') }}" alt="icon" style="height: 16px; vertical-align: middle; margin-right: 6px;" />
+          Activate Self-Destruct
+        </button>
+      </div>
+      </form>
+
+      <div class="output-section" id="outputLog">
+        <strong> Output Logs Will Appear Here...</strong>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("selfForm");
+    const outputBox = document.getElementById("outputLog");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      outputBox.innerText = "⏳ Activating Self-Destruct... Please wait.\n";
+
+      const formData = new FormData(form);
+      const response = await fetch("/self-destruct", {
+        method: "POST",
+        body: formData,
+      });
+
+      const stream = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await stream.read();
+        if (done) break;
+        outputBox.innerText += decoder.decode(value);
+        outputBox.scrollTop = outputBox.scrollHeight;
+      }
+    });
+  </script>
+</body>
+</html>

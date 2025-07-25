@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nexora - Categorized Emails</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #ffffff;
+      padding-top: 80px;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 30px;
+      z-index: 999;
+    }
+
+    .navbar img {
+      height: 40px;
+    }
+
+    .navbar button {
+      background-color: #00b894;
+      color: #fff;
+      border: none;
+      padding: 10px 26px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+      margin-left: auto;
+      margin-right: 10px;
+    }
+
+    .navbar button:hover {
+      background-color: #00cec9;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 80%;
+      margin: auto;
+      border-collapse: collapse;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+    }
+
+    th {
+      background-color: rgba(255, 255, 255, 0.1);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    .category {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      display: inline-block;
+      color: #fff;
+    }
+
+    .Work { background-color: #2980b9; }
+    .Personal { background-color: #8e44ad; }
+    .Orders { background-color: #27ae60; }
+    .Banking, .Financial { background-color: #f39c12; }
+    .Spam { background-color: #e74c3c; }
+    .News { background-color: #3498db; }
+    .Uncategorized { background-color: #7f8c8d; }
+
+    .move-button {
+      display: block;
+      margin: 40px auto 60px;
+      background-color: #0984e3;
+      color: #ffffff;
+      padding: 14px 28px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .move-button:hover {
+      background-color: #74b9ff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔹 Top Navigation Bar -->
+  <div class="navbar">
+    <img src="{{ url_for('static', filename='nexora_logo.png') }}" alt="Nexora Logo">
+    <button onclick="window.location.href='/main'">Dashboard</button>
+  </div>
+
+  <h1>Categorized Emails</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th>Sender</th>
+        <th>Date</th>
+        <th>Category</th>
+      </tr>
+    </thead>
+    <tbody id="email-table">
+      <!-- JS will populate this -->
+    </tbody>
+  </table>
+
+  <!-- 🔹 Move Emails Button -->
+  <button class="move-button" onclick="moveEmails()">Move Emails to Labels</button>
+  <p id="move-status" style="text-align: center; margin-top: 10px; font-weight: bold;"></p>
+
+  <script>
+    // Fetch categorized data and populate table
+    fetch('/categorized-data')
+      .then(res => res.json())
+      .then(data => {
+        const table = document.getElementById('email-table');
+        data.forEach(email => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${email.subject || "<i>(no subject)</i>"}</td>
+            <td>${email.from}</td>
+            <td>${email.date}</td>
+            <td><span class="category ${email.category}">${email.category}</span></td>
+          `;
+          table.appendChild(row);
+        });
+      })
+      .catch(err => {
+        document.getElementById('email-table').innerHTML =
+          '<tr><td colspan="4" style="color: red;">Failed to load categorized emails.</td></tr>';
+        console.error("Fetch error:", err);
+      });
+
+    // Move emails button handler
+    function moveEmails() {
+        const status = document.getElementById("move-status");
+        status.style.color = "#ffffff";
+        status.style.whiteSpace = "pre-wrap";
+        status.textContent = "⏳ Moving emails...";
+
+        fetch("{{ url_for('move_emails') }}", {   // 👈 use the real route name
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({})
+        })
+          .then(res => {
+            if (!res.ok) throw new Error("Bad response from server");
+            return res.json();
+          })
+          .then(data => {
+            if (data.status === "success") {
+              status.style.color = "#00ff00";
+              status.textContent = "✅ Move complete:\n\n" + data.output;
+            } else {
+              status.style.color = "#ff4444";
+              status.textContent = "❌ Error:\n\n" + (data.message || "Unknown error.") +
+                                  (data.output ? "\n\n" + data.output : "");
+            }
+          })
+          .catch(err => {
+            status.style.color = "#ff4444";
+            status.textContent = "❌ Request failed:\n\n" + (err.message || err);
+          });
+      }
+  </script>
+
+</body>
+</html>

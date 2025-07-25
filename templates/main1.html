@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nexora - Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: black;
+      color: white;
+      overflow: hidden;
+    }
+    .top-bar {
+      position: fixed;
+      z-index: 100;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      padding-left: 24px;
+      background: rgba(35,40,50,0.22);
+      backdrop-filter: blur(22px) saturate(145%);
+      box-shadow: 0 2px 22px 0 rgba(25,25,54,0.14);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      gap: 16px;
+    }
+    .logo {
+      height: 36px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -55%);
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      z-index: 2;
+      /* padding-top is no longer needed */
+    }
+    .container h1 {
+      font-size: 22px;
+      margin-bottom: 5px;
+    }
+    .container p {
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    .btn-wrapper {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: 62vh;
+      display: flex;
+      justify-content: space-around;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .feature-btn {
+      width: 180px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      pointer-events: auto;
+      margin: 0 8px;
+    }
+    .feature-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <a href="/"><img src="/static/dynamic/nexora-logo.png" alt="Nexora Logo" class="logo" /></a>
+  </div>
+
+  <div class="container">
+    <h1>Welcome to Nexora</h1>
+    <p>Select an action:</p>
+  </div>
+
+  <canvas id="waveCanvas"></canvas>
+
+  <div class="btn-wrapper" id="btnWrapper">
+    <button class="feature-btn" onclick="navigateTo('/categorize')">📂 Categorize Emails</button>
+    <button class="feature-btn" onclick="navigateTo('/delete')">🗑️ Delete Emails</button>
+    <button class="feature-btn" onclick="navigateTo('/draft')">📝 Delete Drafts</button>
+    <button class="feature-btn" onclick="navigateTo('/unsubscribe')">🚫 Unsubscribe</button>
+    <button class="feature-btn" onclick="navigateTo('/self')">💥 Self-Destruction</button>
+  </div>
+
+  <script>
+    function navigateTo(endpoint) {
+      window.location.href = endpoint;
+    }
+
+    const canvas = document.getElementById("waveCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      updateButtonPositions();
+      generateParticles();
+    }
+
+    window.addEventListener("resize", resize);
+
+    // Central y for the stream is below navigation and text, about 41% down the viewport
+    function getCenterY() {
+      // Place the 'data stream' a bit below vertical center for visual balance (~41%)
+      return Math.round(height * 0.41);
+    }
+
+    // Get the button DOM elements
+    const btnWrapper = document.getElementById('btnWrapper');
+    let buttonPositions = [];
+
+    function updateButtonPositions() {
+      // Re-measure button positions after render for precise curve ends
+      buttonPositions = [];
+      const buttons = btnWrapper.querySelectorAll('.feature-btn');
+      const gap = width / (buttons.length + 1);
+      const y = height * 0.7; // Place buttons at 70% of viewport height
+      buttons.forEach((btn, i) => {
+        const x = gap * (i + 1);
+        buttonPositions.push({x, y});
+        // Absolutely position buttons horizontally centered under each curve
+        btn.style.position = "absolute";
+        btn.style.left = (x - 90) + "px"; // 90 = half of 180px button width
+        btn.style.top = (y - 24) + "px";  // 24 = approx half button height
+      });
+    }
+
+    // --- Particle Logic ---
+    let particles = [];
+    const mainStreamCount = 800;
+    const branchParticles = 80;
+    const branchLineWidth = 2.5;
+    const branchFadeStep = 0.02;
+    const colorMain = "hsl(220,100%,60%)";
+
+    // Curve control points for branches (alternating curves up/down)
+    function getBranchCurves() {
+      const centerY = getCenterY();
+      const centerX = width / 2;
+      // Slight x jitter for more natural, Marvel-ish spread
+      const curves = [];
+      buttonPositions.forEach((btn, i) => {
+        // Branches alternate: up, down, up, down, up
+        const up = i % 2 === 0;
+        // Control point for curvature
+        const controlY = up
+          ? centerY - Math.abs(btn.y - centerY) * 0.8
+          : centerY + Math.abs(btn.y - centerY) * 0.55;
+        const controlX = (btn.x + centerX) / 2 + (up ? -80 : 80);
+        // Each curve has: start (center), control, end (button)
+        curves.push({
+          start: {x: centerX, y: centerY},
+          control: {x: controlX, y: controlY},
+          end: {x: btn.x, y: btn.y}
+        });
+      });
+      return curves;
+    }
+
+    function bezierPoint(t, p0, p1, p2) {
+      // Quadratic Bezier formula
+      return {
+        x: Math.pow(1-t,2)*p0.x + 2*(1-t)*t*p1.x + Math.pow(t,2)*p2.x,
+        y: Math.pow(1-t,2)*p0.y + 2*(1-t)*t*p1.y + Math.pow(t,2)*p2.y
+      };
+    }
+
+    // Particle classes
+    class Particle {
+      constructor(x, y, size, vx, vy, color, alpha = 1) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.vx = vx;
+        this.vy = vy;
+        this.color = color;
+        this.alpha = alpha;
+        this.origY = y;
+        this.offset = Math.random() * 1000;
+      }
+      updateMain(t) {
+        this.x += this.vx;
+        // Sine wiggle only
+        this.y = this.origY + Math.sin((this.x + this.offset + t) / 40) * 22;
+        if (this.x > width + 20) {
+          this.x = -20;
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    class CurveParticle {
+      // t [0,1], moves along curve, then fades
+      constructor(curve, size, color, tStart) {
+        this.curve = curve;
+        this.size = size;
+        this.color = color;
+        this.t = tStart != null ? tStart : Math.random();
+        this.speed = 0.0025 + Math.random() * 0.002; // slow
+        this.fading = false;
+        this.alpha = 1;
+      }
+      update() {
+        if (this.fading) {
+          this.alpha -= branchFadeStep;
+        } else {
+          this.t += this.speed;
+          if (this.t >= 1) {
+            this.t = 1;
+            this.fading = true;
+          }
+        }
+      }
+      draw() {
+        const {start, control, end} = this.curve;
+        const pt = bezierPoint(this.t, start, control, end);
+        ctx.beginPath();
+        ctx.globalAlpha = Math.max(this.alpha, 0.08);
+        ctx.fillStyle = this.color;
+        ctx.arc(pt.x, pt.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      isDead() {
+        return this.alpha <= 0.05;
+      }
+    }
+
+    function generateParticles() {
+      // Main horizontal stream
+      particles = [];
+      const waveY = getCenterY();
+      for (let i = 0; i < mainStreamCount; i++) {
+        let x = Math.random() * width;
+        let y = waveY + Math.sin(x / 50) * 20;
+        let size = Math.random() < 0.98 ? 1.5 : 3.5;
+        let vx = 0.7 + Math.random() * 0.25;
+        let hue = 200 + (x / width) * 120;
+        let color = `hsl(${hue}, 100%, 60%)`;
+        particles.push(new Particle(x, y, size, vx, 0, color));
+      }
+      // Branch particles
+      if (buttonPositions.length === 5) {
+        let curves = getBranchCurves();
+        curves.forEach((curve, idx) => {
+          for (let j = 0; j < branchParticles; j++) {
+            let tStart = Math.random() * 0.6; // clustered more at base
+            let size = 2.1 + Math.random() * 1.3;
+            let hue = 215 + idx * 15 + Math.random() * 22;
+            let color = `hsl(${hue},100%,70%)`;
+            particles.push(new CurveParticle(curve, size, color, tStart));
+          }
+        });
+      }
+    }
+
+    // --- Animation Loop ---
+    let time = 0;
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      time += 1;
+      // Animate particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        if (p instanceof Particle) {
+          p.updateMain(time);
+          p.draw();
+        } else if (p instanceof CurveParticle) {
+          p.update();
+          p.draw();
+          if (p.isDead()) {
+            // Re-inject on branch for continuous feel
+            let idx = particles.indexOf(p);
+            let newCurve = getBranchCurves()[idx % 5];
+            particles[i] = new CurveParticle(newCurve, 2.2 + Math.random() * 1, `hsl(${218 + (idx % 5) * 14},100%,72%)`);
+          }
+        }
+      }
+      // Draw the branch base curves faintly (optional for Marvel-ish effect)
+      if (buttonPositions.length === 5) {
+        ctx.save();
+        ctx.lineWidth = branchLineWidth;
+        ctx.globalAlpha = 0.25;
+        ctx.setLineDash([5, 24]);
+        const curves = getBranchCurves();
+        curves.forEach((curve, idx) => {
+          ctx.strokeStyle = `hsl(${210 + idx * 18},98%,60%)`;
+          ctx.beginPath();
+          ctx.moveTo(curve.start.x, curve.start.y);
+          ctx.quadraticCurveTo(curve.control.x, curve.control.y, curve.end.x, curve.end.y);
+          ctx.stroke();
+        });
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // On initial load, ensure DOM is ready
+    function init() {
+      updateButtonPositions();
+      generateParticles();
+      animate();
+    }
+
+    // Wait for layout
+    window.onload = () => {
+      resize();
+      init();
+    };
+
+  </script>
+</body>
+</html>
