@@ -5,7 +5,7 @@
 
 # Nexora: AI-Powered Email Assistant
 
-**Nexora** is a productivity-focused AI email assistant that automates inbox management tasks such as categorizing, cleaning up unwanted emails, deleting drafts, and bulk unsubscribing — all through a simple and intuitive interface.
+**Nexora** is a productivity-focused AI email assistant that automates inbox management tasks such as categorizing, cleaning up unwanted emails, deleting drafts, and bulk unsubscribing - all through a simple and intuitive interface.
 
 ---
 
@@ -109,5 +109,9 @@ Once the server is running, open your browser and go to:
 
 ## ✍️ Contributors
 
-- **[Your Name]** – Project Lead & Developer  
-- *(Optional: Add names of teammates or collaborators here)*
+- **Mayank Gupta**
+- **Sai Disha N** 
+- **Nidhi S Mugali**
+- **Joel Jacob**
+- **Vibha Jaikanthan**
+
