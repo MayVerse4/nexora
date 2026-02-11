@@ -3,38 +3,38 @@
   <img src="static/banner.png" alt="Nexora Banner" width="100%">
 </p>
 
-# 📧 Nexora: AI-Powered Email Assistant
+# Nexora: AI-Powered Email Assistant
 
 **Nexora** is a productivity-focused AI email assistant that automates inbox management tasks such as categorizing, cleaning up unwanted emails, deleting drafts, and bulk unsubscribing — all through a simple and intuitive interface.
 
 ---
 
-## 🚀 Core Functionalities
+## Core Functionalities
 
-1. **🔐 Gmail Login**
+1. **Gmail Login**
    - Google OAuth2 login for secure access to your Gmail inbox.
 
-2. **📂 Email Categorization**
+2. **Email Categorization**
    - Automatically categorizes your emails using AI.
    - Sorts messages into labels like Promotions, Personal, or Spam.
 
-3. **🗑️ Email Deletion**
+3. **Email Deletion**
    - AI suggests unwanted emails for deletion.
    - Supports both soft delete (Gmail Bin) and permanent delete options.
 
-4. **📝 Draft Cleanup**
+4. **Draft Cleanup**
    - Detects unused or old email drafts and removes them in bulk.
 
-5. **📬 Bulk Unsubscribe**
+5. **Bulk Unsubscribe**
    - Identifies newsletters and promotional senders.
    - Lets you unsubscribe and delete all emails from selected sources.
 
-6. **💥 Self-Destruction**
+6. **Self-Destruction**
    - A placeholder for wiping inbox data or deleting multiple categories of emails with a single click.
 
 ---
 
-## 🖼️ UI Pages
+## UI Pages
 
 - `index.html` → Welcome page with **Get Started** button  
 - `login.html` → Google login screen  
@@ -46,7 +46,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend**: Python 3, Flask
 - **Frontend**: HTML5, CSS3
@@ -55,7 +55,7 @@
 
 ---
 
-## 🔒 Privacy & Security
+## Privacy & Security
 
 - Nexora **does not access or store full email content**.
 - Only uses **email metadata** such as subject, sender, and timestamp.
@@ -63,7 +63,7 @@
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 nexora/
@@ -91,7 +91,7 @@ nexora/
 
 ---
 
-## 🧪 How to Run Locally
+## How to Run Locally
 
 Follow these steps to run Nexora on your local machine:
 
@@ -103,7 +103,7 @@ python server.py
 ```
 
 Once the server is running, open your browser and go to:  
-👉 **http://127.0.0.1:5000/**
+ **http://127.0.0.1:5000/**
 
 ---
 
